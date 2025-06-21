@@ -107,7 +107,16 @@ const fetchMessages = async (contactId: string) => {
       ...msg,
       timestamp: new Date(msg.timestamp),
     }));
-    setMessages(parsed);
+
+    // Force update even if messages are the same
+    setMessages((prevMessages) => {
+      const prevStr = JSON.stringify(prevMessages);
+      const nextStr = JSON.stringify(parsed);
+      if (prevStr !== nextStr) {
+        return parsed;
+      }
+      return prevMessages;
+    });
   } catch (error) {
     toast.error('Failed to fetch messages');
   }
