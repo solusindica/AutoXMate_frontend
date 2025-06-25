@@ -6,8 +6,8 @@ import toast from 'react-hot-toast';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
-  const [email, setEmail] = useState('admin@company.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -39,7 +39,7 @@ export const LoginPage: React.FC = () => {
               <Zap className="w-7 h-7 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">WhatsApp Pro</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">AutoXMate</h1>
           <p className="text-gray-600">Sign in to your marketing dashboard</p>
         </div>
 
@@ -102,19 +102,19 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
+          {/* Demo Credentials
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 font-medium mb-2">Demo Credentials:</p>
             <div className="space-y-1 text-xs text-gray-500">
               <p><strong>Admin:</strong> admin@company.com / password123</p>
               <p><strong>Staff:</strong> staff@company.com / password123</p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
-          © 2025 WhatsApp Pro. All rights reserved.
+          © 2025 AutoXMate. All rights reserved.
         </div>
       </div>
     </div>

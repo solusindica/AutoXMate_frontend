@@ -31,7 +31,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
           <Zap className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-gray-900">Whatsapp Pro</span>
+        <span className="text-xl font-bold text-gray-900">AutoXMate</span>
       </div>
 
       {/* Navigation */}
