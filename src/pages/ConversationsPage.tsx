@@ -133,7 +133,10 @@ const fetchMessages = async (contactId: string) => {
     try {
       const sentMessage = await messageService.sendMessage(
         selectedConversation.contactId,
-        messageContent
+        {
+          type: 'text',
+          content: messageContent,
+        }
       );
 
       setMessages(prev => [...prev, { ...sentMessage, timestamp: new Date(sentMessage.timestamp) }]);

@@ -14,6 +14,8 @@ import { Plus, Play, Pause, Trash2, Users, MessageSquare, Calendar, BarChart } f
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import * as templateService from '../services/templateService';
+import * as messageService from '../services/messageService';
 
 interface CampaignForm {
   name: string;
@@ -33,7 +35,6 @@ export const CampaignsPage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<CampaignForm>();
-  
   const watchedTemplateId = watch('templateId');
 
   useEffect(() => {
@@ -51,10 +52,9 @@ export const CampaignsPage: React.FC = () => {
     try {
       const [campaignsData, templatesData, contactsData] = await Promise.all([
         campaignService.getAllCampaigns(),
-        campaignService.getAllTemplates(),
+        templateService.getAllTemplates(),
         contactService.getAllContacts()
       ]);
-      
       setCampaigns(campaignsData);
       setTemplates(templatesData);
       setContacts(contactsData);
@@ -67,6 +67,7 @@ export const CampaignsPage: React.FC = () => {
 
   const handleCreateCampaign = async (data: CampaignForm) => {
     if (!user) return;
+    const template = templates.find(t => t.id === data.templateId);
 
     try {
       const newCampaign = await campaignService.createCampaign({
@@ -76,8 +77,9 @@ export const CampaignsPage: React.FC = () => {
         contactIds: data.contactIds,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
         createdBy: user.id,
+        templateName: template?.name,
+        components: template?.components
       });
-      
       setCampaigns(prev => [newCampaign, ...prev]);
       setIsCreateModalOpen(false);
       reset();
@@ -91,11 +93,29 @@ export const CampaignsPage: React.FC = () => {
     if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
 
     try {
-      await campaignService.runCampaign(campaign.id);
-      await fetchData(); // Refresh data
-      toast.success('Campaign started successfully');
+      const template = templates.find(t => t.id === campaign.templateId);
+      if (!template) {
+        toast.error('Template not found');
+        return;
+      }
+
+      for (const contactId of campaign.contactIds) {
+        try {
+          await messageService.sendMessage(contactId, {
+            type: 'template',
+            templateName: template.name,
+            language: template.language || 'en_US',
+            components: template.components
+          });
+        } catch (error) {
+          console.error(`Failed to send to contact ${contactId}:`, error);
+        }
+      }
+
+      toast.success('Campaign sent successfully');
     } catch (error) {
-      toast.error('Failed to run campaign');
+      console.error(error);
+      toast.error('Failed to send campaign');
     }
   };
 
@@ -379,7 +399,7 @@ export const CampaignsPage: React.FC = () => {
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-700 mb-1">Template Preview:</p>
                 <p className="text-sm text-gray-600">{selectedTemplate.content}</p>
-                {selectedTemplate.variables.length > 0 && (
+                {selectedTemplate?.variables?.length > 0 && (
                   <p className="text-xs text-gray-500 mt-1">
                     Variables: {selectedTemplate.variables.join(', ')}
                   </p>

@@ -28,34 +28,49 @@ export const getMessagesByContactId = async (contactId: string): Promise<Message
 
 export const sendMessage = async (
   contactId: string,
-  content: string,
-  type: Message['type'] = 'text'
+  options: {
+    type?: Message['type'];                  // 'text' or 'template'
+    content?: string;                        // Only for text
+    templateName?: string;                   // Only for template
+    language?: string;                       // Optional, default 'en_US'
+    components?: any[];                      // Template component array
+  } = {}
 ): Promise<Message> => {
-  const res = await axios.post('/messages/send', {
-    contactId,
-    content,
-    type,
-  });
+  const {
+    type = 'text',
+    content = '',
+    templateName,
+    language = 'en_US',
+    components
+  } = options;
+
+  const payload: any = { contactId, type };
+
+  if (type === 'text') {
+    payload.content = content;
+  } else if (type === 'template') {
+    if (!templateName || !components) {
+      throw new Error('Missing templateName or components for template message');
+    }
+    payload.templateName = templateName;
+    payload.language = language;
+    payload.components = components;
+  } else {
+    throw new Error(`Unsupported message type: ${type}`);
+  }
+
+  const res = await axios.post('/messages/send', payload);
 
   return {
     id: res.data.id || Date.now().toString(),
     contactId,
     type,
-    content,
+    content: type === 'text' ? content : templateName || '',
     direction: 'outbound',
     status: res.data.status || 'sent',
     timestamp: new Date(),
+    templateName: templateName,
   };
-};
-
-export const updateMessageStatus = async (messageId: string, status: Message['status']): Promise<void> => {
-  const messages = await getAllMessages();
-  const messageIndex = messages.findIndex(m => m.id === messageId);
-  
-  if (messageIndex !== -1) {
-    messages[messageIndex].status = status;
-    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages));
-  }
 };
 
 export const getMessageStats = async (): Promise<{

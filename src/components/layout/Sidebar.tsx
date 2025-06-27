@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   MessageSquare, 
+  FileText,
   Send, 
   Users, 
   Settings,
@@ -15,6 +16,7 @@ import { clsx } from 'clsx';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Conversations', href: '/conversations', icon: MessageSquare },
+  { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Campaigns', href: '/campaigns', icon: Send },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },

@@ -1,6 +1,7 @@
 import { Campaign, Template, Contact, Message } from '../types';
 import { getAllContacts } from './contactService';
 import { sendMessage } from './messageService';
+import axios from '../api/axios';
 
 const CAMPAIGNS_STORAGE_KEY = 'whatsapp_marketing_campaigns';
 const TEMPLATES_STORAGE_KEY = 'whatsapp_marketing_templates';
@@ -111,10 +112,12 @@ const initializeCampaigns = (): Campaign[] => {
   }));
 };
 
+
 export const getAllTemplates = async (): Promise<Template[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200));
-  return initializeTemplates();
+  const response = await axios.get('/templates/meta'); // or /templates/from-meta
+  return response.data.data || []; // safely return the array
 };
+
 
 export const getTemplateById = async (id: string): Promise<Template | null> => {
   const templates = await getAllTemplates();
@@ -135,6 +138,8 @@ export const createCampaign = async (campaignData: {
   name: string;
   description?: string;
   templateId: string;
+  templateName?: string;       // ✅ Add this
+  components?: any[];
   contactIds: string[];
   scheduledAt?: Date;
   createdBy: string;
@@ -154,6 +159,7 @@ export const createCampaign = async (campaignData: {
     templateId: campaignData.templateId,
     templateName: template.name,
     templateContent: template.content,
+    components: campaignData.components || template.components || [],
     contactIds: campaignData.contactIds,
     status: campaignData.scheduledAt && campaignData.scheduledAt > new Date() ? 'scheduled' : 'draft',
     scheduledAt: campaignData.scheduledAt,
@@ -206,7 +212,12 @@ export const runCampaign = async (campaignId: string): Promise<void> => {
         message = message.replace(/\{\{date\}\}/g, '31st Dec');
         message = message.replace(/\{\{order_id\}\}/g, Math.random().toString(36).substr(2, 9).toUpperCase());
         
-        await sendMessage(contactId, message, 'template', campaign.templateName);
+        await sendMessage(contactId, {
+            type: 'template',
+            templateName: campaign.templateName,  // ✅ ensure this exists
+            language: 'en_US',
+            components: campaign.components       // ✅ make sure it's in Meta API format
+          });
         sentCount++;
       } catch (error) {
         console.error(`Failed to send message to contact ${contactId}:`, error);

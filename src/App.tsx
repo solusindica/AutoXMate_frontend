@@ -9,6 +9,7 @@ import { ConversationsPage } from './pages/ConversationsPage';
 import { CampaignsPage } from './pages/CampaignsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { TemplatesPage } from './pages/TemplatesPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -54,13 +55,21 @@ const AppRoutes: React.FC = () => {
         } 
       />
       <Route 
+        path="/templates" 
+        element={
+          <ProtectedRoute>
+            <TemplatesPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/contacts" 
         element={
           <ProtectedRoute>
             <ContactsPage />
           </ProtectedRoute>
         } 
-      />
+        />
       <Route 
         path="/conversations" 
         element={
@@ -77,6 +86,7 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } 
       />
+      
       <Route 
         path="/settings" 
         element={

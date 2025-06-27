@@ -1,11 +1,4 @@
-import axios from 'axios';
-
-export default axios.create({
-  baseURL: 'https://autoxmate-backend.onrender.com',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import axios from '../api/axios';
 
 export interface User {
   id: string;
@@ -48,7 +41,7 @@ export interface Campaign {
   name: string;
   description?: string;
   templateId: string;
-  templateName: string;
+  templateName?: string;
   templateContent: string;
   contactIds: string[];
   status: 'draft' | 'scheduled' | 'running' | 'completed' | 'failed';
@@ -56,6 +49,7 @@ export interface Campaign {
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
+  components?: any[]; 
   stats: {
     total: number;
     sent: number;
@@ -74,6 +68,8 @@ export interface Template {
   variables: string[];
   status: 'active' | 'inactive';
   createdAt: Date;
+  components?: any[]; // ✅ Add this line
+  
 }
 
 export interface WhatsAppConfig {

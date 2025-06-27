@@ -1,8 +1,20 @@
+// import axios from '../api/axios';
+
+// export default axios.create({
+//   baseURL: 'http://localhost:8000', 
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+
 import axios from 'axios';
 
-export default axios.create({
-  baseURL: 'https://autoxmate-backend.onrender.com', 
+const instance = axios.create({
+  baseURL: 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+export default instance;
