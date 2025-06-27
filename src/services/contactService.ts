@@ -1,7 +1,7 @@
 // src/services/contactService.ts
 import { Contact } from '../types';
 
-const API_BASE = 'http://localhost:8000'; // or your actual base URL
+const API_BASE = 'https://autoxmate-backend.onrender.com'; // or your actual base URL
 
 export const getAllContacts = async (): Promise<Contact[]> => {
   const response = await fetch(`${API_BASE}/contacts`);
