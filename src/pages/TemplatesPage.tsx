@@ -9,6 +9,7 @@ import { Modal } from '../components/ui/Modal';
 import { useForm, useFieldArray } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as templateService from '../services/templateService';
+import axios from 'axios';
 
 interface TemplateForm {
   name: string;
@@ -25,6 +26,9 @@ interface TemplateForm {
 export const TemplatesPage: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mediaId, setMediaId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   const { register, handleSubmit, watch, reset, control } = useForm<TemplateForm>({
     defaultValues: {
       category: 'MARKETING',
@@ -51,6 +55,25 @@ export const TemplatesPage: React.FC = () => {
     fetchTemplates();
   }, []);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const formData = new FormData();
+    formData.append("file", file); // ✅ correct key
+
+    try {
+      const response = await axios.post("/media/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      const mediaId = response.data.media_id;
+      setMediaId(mediaId);
+      toast.success("Image uploaded successfully");
+    } catch (err) {
+      toast.error("Upload failed");
+    }
+  }
+};
+
   const onSubmit = async (formData: TemplateForm) => {
     try {
       const components: any[] = [];
@@ -59,7 +82,7 @@ export const TemplatesPage: React.FC = () => {
         components.push({
           type: 'HEADER',
           parameters: formData.type === 'image'
-            ? [{ type: 'image', image: { link: formData.media_url } }]
+            ? [{ type: 'image', image: { id: mediaId } }]
             : [{ type: 'text', text: formData.header }]
         });
       }
@@ -89,6 +112,7 @@ export const TemplatesPage: React.FC = () => {
 
       await templateService.createTemplateInMeta({
         ...formData,
+        media_url: mediaId,
         components
       });
 
@@ -139,8 +163,12 @@ export const TemplatesPage: React.FC = () => {
           </select>
 
           <input {...register('header')} placeholder="Header (optional)" />
-          {type !== 'text' && (
-            <input {...register('media_url')} placeholder="Media URL (image/video)" />
+          {type === 'image' && (
+            <div className="space-y-2">
+              <input type="file" accept="image/*" onChange={handleImageUpload} />
+              {uploading && <p className="text-sm text-blue-600">Uploading...</p>}
+              {mediaId && <p className="text-sm text-green-600">Uploaded Media ID: {mediaId}</p>}
+            </div>
           )}
           <textarea {...register('body')} placeholder="Body" required />
           <input {...register('footer')} placeholder="Footer (optional)" />

@@ -11,6 +11,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { TemplatesPage } from './pages/TemplatesPage';
 
+
+
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
 
@@ -41,6 +44,7 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
+    
     <Routes>
       <Route 
         path="/login" 
@@ -97,6 +101,7 @@ const AppRoutes: React.FC = () => {
       />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    
   );
 };
 
