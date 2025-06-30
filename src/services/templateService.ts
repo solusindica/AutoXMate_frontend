@@ -16,12 +16,27 @@ export const createTemplateInMeta = async (template: any): Promise<any> => {
 
 
 
+// export const uploadImageToMeta = async (file: File): Promise<string> => {
+//   const formData = new FormData();
+//   formData.append('file', file);
+
+//   const res = await axios.post('/media/upload', formData);  // ✅ local backend route
+//   return res.data.media_id;  // ✅ assuming backend responds with { media_id: 'xyz' }
+// };;
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 export const uploadImageToMeta = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await axios.post('/media/upload', formData);  // ✅ local backend route
-  return res.data.media_id;  // ✅ assuming backend responds with { media_id: 'xyz' }
-};;
+  const res = await axios.post(`${API_BASE}/media/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return res.data.media_id;
+};
 
   
