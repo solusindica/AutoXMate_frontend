@@ -4,7 +4,7 @@ export const uploadImageToMeta = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await axios.post('https://autoxmate-backend.onrender.com//upload-media', formData, {
+  const response = await axios.post('https://autoxmate-backend.onrender.com/upload-media', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
