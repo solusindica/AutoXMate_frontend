@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-      "deploy": "vite build && cp CNAME dist/CNAME && cp dist/index.html dist/404.html && gh-pages -d dist"
+    "deploy": "vite build && copy CNAME dist\\CNAME && copy dist\\index.html dist\\404.html && gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^1.10.0",
