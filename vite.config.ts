@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
  
   plugins: [react()],
-  base: '/',
+  base: '/AutoXMate_frontend/',
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
