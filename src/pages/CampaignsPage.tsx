@@ -100,15 +100,17 @@ export const CampaignsPage: React.FC = () => {
     if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
 
     try {
-      await axios.post('/campaigns/run', {
+      await axios.post('https://autoxmate-backend.onrender.com/campaigns/run', {
         templateName: campaign.templateName,
         contactIds: campaign.contactIds,
-        variables: templateVariables
+        variables: templateVariables,
+        language: "en_US"
       });
 
       toast.success('Campaign sent successfully');
     } catch (error) {
       toast.error('Failed to send campaign');
+      console.error('Run campaign failed:', error);
     }
   };
 
