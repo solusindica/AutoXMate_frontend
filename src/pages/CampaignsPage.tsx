@@ -96,23 +96,26 @@ export const CampaignsPage: React.FC = () => {
     }
   };
 
-  const handleRunCampaign = async (campaign: Campaign) => {
-    if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
+ const handleRunCampaign = async (campaign: Campaign) => {
+  if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
 
-    try {
-      await axios.post('https://autoxmate-backend.onrender.com/campaigns/run', {
-        templateName: campaign.templateName,
-        contactIds: campaign.contactIds,
-        variables: templateVariables,
-        language: "en_US"
-      });
-
-      toast.success('Campaign sent successfully');
-    } catch (error) {
-      toast.error('Failed to send campaign');
-      console.error('Run campaign failed:', error);
-    }
+  const payload = {
+    templateName: campaign.templateName ?? '',         // ensure it's not undefined
+    contactIds: campaign.contactIds || [],             // ensure it's an array
+    variables: templateVariables || {},                // avoid null/undefined
+    language: "en_US"
   };
+
+  console.log("📤 Sending campaign run payload:", payload); // ✅ Log the full payload
+
+  try {
+    await axios.post('https://autoxmate-backend.onrender.com/campaigns/run', payload);
+    toast.success('Campaign sent successfully');
+  } catch (error) {
+    toast.error('Failed to send campaign');
+    console.error('🚫 Run campaign failed:', error);
+  }
+};
 
   const handleDeleteCampaign = async (campaign: Campaign) => {
     if (!window.confirm(`Are you sure you want to delete "${campaign.name}"?`)) return;
