@@ -1,4 +1,4 @@
-import axios from '../api/axios';
+import axios from 'axios';
 
 export interface User {
   id: string;
@@ -42,14 +42,15 @@ export interface Campaign {
   description?: string;
   templateId: string;
   templateName?: string;
-  templateContent: string;
   contactIds: string[];
   status: 'draft' | 'scheduled' | 'running' | 'completed' | 'failed';
   scheduledAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
+  language :string;
   components?: any[]; 
+  
   stats: {
     total: number;
     sent: number;
@@ -57,7 +58,14 @@ export interface Campaign {
     read: number;
     failed: number;
   };
+  run_payload?: {
+    template_name: string;
+    language: string;
+    contact_ids: string[];
+    components: any[];
+  };
 }
+
 
 export interface Template {
   id: string;
