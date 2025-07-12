@@ -1,12 +1,3 @@
-// import axios from '../api/axios';
-
-// export default axios.create({
-//   baseURL: 'http://localhost:8000', 
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
 
 import axios from 'axios';
 
