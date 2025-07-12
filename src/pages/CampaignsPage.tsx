@@ -217,7 +217,7 @@ const handleRunCampaign = async (campaign: Campaign) => {
   console.log("📤 Sending campaign run payload:", payload);
 
   try {
-    await axios.post(`http://localhost:8000/campaigns/${campaign.id}/run`, payload);
+    await axios.post(`/campaigns/${campaign.id}/run`, payload);
     toast.success('Campaign sent successfully');
   } catch (error) {
     toast.error('Failed to send campaign');
