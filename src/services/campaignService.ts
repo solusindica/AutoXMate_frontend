@@ -13,7 +13,7 @@ export const getTemplateById = async (id: string): Promise<Template | null> => {
 };
 
 export const getAllCampaigns = async (): Promise<Campaign[]> => {
-  const response = await axios.get('https://autoxmate-backend.onrender.com/campaigns/');
+  const response = await axios.get('/campaigns/');
   return response.data || [];
 };
 
@@ -51,14 +51,16 @@ export const createCampaign = async (campaignData: {
   return response.data;
 };
 
-export const runCampaign = async (data: {
-  template_name: string;
-  language: string;
-  components: any[];
-  contact_ids: string[];
-}): Promise<void> => {
-  await axios.post(`/campaigns/run`, data);
-
+export const runCampaign = async (
+  campaignId: string,
+  data: {
+    template_name: string;
+    language: string;
+    components: any[];
+    contact_ids: string[];
+  }
+): Promise<void> => {
+  await axios.post(`https://autoxmate-backend.onrender.com/campaigns/${campaignId}/run`, data);
 };
 
 export const deleteCampaign = async (id: string): Promise<void> => {
