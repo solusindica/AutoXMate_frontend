@@ -217,7 +217,11 @@ const handleRunCampaign = async (campaign: Campaign) => {
   console.log("📤 Sending campaign run payload:", payload);
 
   try {
+<<<<<<< HEAD
     await axios.post(`https://autoxmate-backend.onrender.com/campaigns/${campaign.id}/run`, payload);
+=======
+    await campaignService.runCampaign(campaign.id, payload);
+>>>>>>> 6a656d9a7e56a34a8ec0f138cd499155703e6ab7
     toast.success('Campaign sent successfully');
   } catch (error) {
     toast.error('Failed to send campaign');

@@ -11,7 +11,11 @@
     "deploy": "vite build && copy CNAME dist\\CNAME && copy dist\\index.html dist\\404.html && gh-pages -d dist"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@supabase/supabase-js": "^2.52.1",
+=======
+    "@supabase/supabase-js": "^2.50.5",
+>>>>>>> 6a656d9a7e56a34a8ec0f138cd499155703e6ab7
     "axios": "^1.10.0",
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0",
