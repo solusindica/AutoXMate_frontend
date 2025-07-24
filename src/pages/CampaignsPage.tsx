@@ -14,8 +14,8 @@ import { Plus, Play, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import { supabase } from '../lib/supabaseClient'
+
 interface CampaignForm {
   name: string;
   description: string;
@@ -76,23 +76,25 @@ export const CampaignsPage: React.FC = () => {
 }, [watchedTemplateId, templates]);
 
 
-  const fetchData = async () => {
-    try {
-      const [campaignsData, templatesData, contactsData] = await Promise.all([
-        campaignService.getAllCampaigns(),
-        templateService.getAllTemplates(),
-        contactService.getAllContacts()
-      ]);
-      setCampaigns(campaignsData);
-      setTemplates(templatesData);
-      setContacts(contactsData);
-    } catch (error) {
-      toast.error('Failed to fetch data');
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchData = async () => {
+  try {
+    const [campaignsData, templatesData, contactsData] = await Promise.all([
+      campaignService.getAllCampaigns(),
+      templateService.getAllTemplates(),
+      contactService.getAllContacts()
+    ]);
 
+    console.log("📦 Campaigns from backend:", campaignsData);
+    setCampaigns(campaignsData); // ✅ may crash if campaignsData is undefined
+    setTemplates(templatesData);
+    setContacts(contactsData);
+  } catch (error) {
+    toast.error("❌ Failed to fetch campaigns");
+    console.error("Fetch data error:", error);
+  } finally {
+    setLoading(false); // ✅ must be in finally to exit spinner
+  }
+};
   // ...imports remain same
 const handleCreateCampaign = async (data: CampaignForm) => {
   if (!user) return;
@@ -270,8 +272,8 @@ const handleRunCampaign = async (campaign: Campaign) => {
                   <h3 className="text-lg font-semibold">{campaign.name}</h3>
                   <p className="text-sm text-gray-600">{campaign.description}</p>
                   <div className="flex gap-4 mt-2 text-sm text-gray-500">
-                    <span>{campaign.templateName}</span>
-                    <span>{campaign.contactIds?.length ?? 0} contacts</span>
+                    <span>{campaign.template_name}</span>
+                    <span>{campaign.contact_ids.length} contacts</span>
                     <span>
                       {campaign.createdAt ? format(new Date(campaign.createdAt), 'PP') : '—'}
                     </span>     
@@ -370,9 +372,51 @@ const handleRunCampaign = async (campaign: Campaign) => {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Contacts *</label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-medium">Contacts *</label>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  const reader = new FileReader();
+                  reader.onload = async () => {
+                    const csvText = reader.result as string;
+                    try {
+                      await contactService.importContactsFromCSV(csvText);
+                      const updatedContacts = await contactService.getAllContacts();
+                      setContacts(updatedContacts);
+                      toast.success('Contacts imported');
+                    } catch (err) {
+                      toast.error('Failed to import CSV');
+                    }
+                  };
+                  reader.readAsText(file);
+                }}
+                className="text-sm"
+              />
+          </div>
             <div className="border border-gray-300 rounded p-2 max-h-48 overflow-y-auto">
+              <label className="flex items-center gap-2 py-1 font-semibold">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    const allContactIds = contacts.map((c) => c.id);
+                    if (e.target.checked) {
+                      // Select all
+                      reset({ ...watch(), contactIds: allContactIds });
+                    } else {
+                      // Deselect all
+                      reset({ ...watch(), contactIds: [] });
+                    }
+                  }}
+                  className="accent-blue-500"
+                />
+                <span>Select All Contacts</span>
+              </label>
+
               {contacts.map(c => (
                 <label key={c.id} className="flex items-center gap-2 py-1">
                   <input
@@ -385,9 +429,6 @@ const handleRunCampaign = async (campaign: Campaign) => {
                 </label>
               ))}
             </div>
-
-            {errors.contactIds && <p className="text-red-500 text-sm">At least one contact required</p>}
-          </div>
 
           <div className="flex justify-end gap-3">
             <Button type="submit">Create</Button>

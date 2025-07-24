@@ -68,7 +68,7 @@ export const sendMessage = async (
     content: type === 'text' ? content : templateName || '',
     direction: 'outbound',
     status: res.data.status || 'sent',
-    timestamp: new Date(),
+    timestamp: new Date(res.data.timestamp),
     templateName: templateName,
   };
 };

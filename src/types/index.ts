@@ -30,7 +30,7 @@ export interface Message {
   content: string;
   direction: 'inbound' | 'outbound';
   status: 'sent' | 'delivered' | 'read' | 'failed' | 'pending';
-  timestamp: Date;
+  timestamp: Date | string;  
   templateName?: string;
   mediaUrl?: string;
   metadata?: Record<string, any>;
@@ -41,8 +41,8 @@ export interface Campaign {
   name: string;
   description?: string;
   templateId: string;
-  templateName?: string;
-  contactIds: string[];
+  template_name?: string;
+  contact_ids: string[];
   status: 'draft' | 'scheduled' | 'running' | 'completed' | 'failed';
   scheduledAt?: Date;
   createdAt: Date;

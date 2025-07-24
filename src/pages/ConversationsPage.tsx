@@ -9,10 +9,20 @@ import { Conversation, Message, Contact } from '../types';
 import * as conversationService from '../services/conversationService';
 import * as messageService from '../services/messageService';
 import { Search, Send, Phone, MoreVertical, Paperclip, Smile } from 'lucide-react';
-import { format } from 'date-fns';
 import { clsx } from 'clsx';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
+import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
+export const formatIST = (
+  date: string | Date,
+  pattern = 'HH:mm'
+): string => {
+  const istTimeZone = 'Asia/Kolkata';
+  const utcDate = typeof date === 'string' ? new Date(date) : date;
+  const zonedDate = utcToZonedTime(utcDate, istTimeZone);
+  return format(zonedDate, pattern);
+};
 
 export const ConversationsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -48,17 +58,12 @@ export const ConversationsPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  
+
   const fetchConversations = async (contactIdToSelect?: string) => {
   try {
     const data = await conversationService.getAllConversations();
-    const parsed = data.map((conv) => ({
-      ...conv,
-      updatedAt: new Date(conv.updatedAt),
-      lastMessage: {
-        ...conv.lastMessage,
-        timestamp: new Date(conv.lastMessage.timestamp),
-      },
-    }));
+    const parsed = data;
     setConversations(parsed);
     console.log("Fetched conversations:", parsed);
 
@@ -99,14 +104,11 @@ export const ConversationsPage: React.FC = () => {
     setLoading(false);
   }
 };
-
+const timeZone = 'Asia/Kolkata';
 const fetchMessages = async (contactId: string) => {
   try {
     const data = await messageService.getMessagesByContactId(contactId);
-    const parsed = data.map((msg) => ({
-      ...msg,
-      timestamp: new Date(msg.timestamp),
-    }));
+    const parsed = data;
 
     // Force update even if messages are the same
     setMessages((prevMessages) => {
@@ -148,6 +150,7 @@ const fetchMessages = async (contactId: string) => {
     } finally {
       setSendingMessage(false);
     }
+    
   };
 
   const scrollToBottom = () => {
@@ -231,7 +234,7 @@ const fetchMessages = async (contactId: string) => {
                           {conversation.contact.name}
                         </h3>
                         <span className="text-xs text-gray-500">
-                          {format(new Date(conversation.updatedAt), 'HH:mm')}
+                          {formatIST(conversation.updatedAt, 'HH:mm')}
                         </span>
                       </div>
 
@@ -309,12 +312,14 @@ const fetchMessages = async (contactId: string) => {
                     <p className="text-sm">{message.content}</p>
                     <div className="flex items-center justify-between mt-1 gap-2">
                       <span className="text-xs opacity-70">
-                        {format(message.timestamp, 'HH:mm')}
+                        {format(utcToZonedTime(message.timestamp, timeZone), 'dd MMM, hh:mm a')}
                       </span>
+
                       {message.direction === 'outbound' && (
                         <span className={clsx('text-xs', getMessageStatusColor(message.status))}>
                           {getMessageStatusText(message.status)}
                         </span>
+                       
                       )}
                     </div>
                   </div>

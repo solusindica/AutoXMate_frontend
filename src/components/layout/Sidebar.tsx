@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { clsx } from 'clsx';
+import logo from '../../assets/logo.png';
+import autologo from '../../assets/autologo.png'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -29,12 +31,13 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
-          <Zap className="w-5 h-5 text-white" />
+      <div className="flex items-center justify-center px-6 py-4 border-b border-gray-200">
+          <img
+            src={autologo}
+            alt="AutoxMate Logo"
+            className="h-10 w-auto object-contain"
+          />
         </div>
-        <span className="text-xl font-bold text-gray-900">AutoXMate</span>
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -62,9 +65,9 @@ export const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
           <img
-            src={user?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'}
-            alt={user?.name}
-            className="w-10 h-10 rounded-full object-cover"
+            src={logo}
+            alt="logo"
+            className="w-10 h-10 rounded-1xl object-fill"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
