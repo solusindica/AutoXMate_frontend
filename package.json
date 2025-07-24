@@ -10,23 +10,19 @@
     "preview": "vite preview",
     "deploy": "vite build && copy CNAME dist\\CNAME && copy dist\\index.html dist\\404.html && gh-pages -d dist"
   },
-  "dependencies": {
-<<<<<<< HEAD
-    "@supabase/supabase-js": "^2.52.1",
-=======
-    "@supabase/supabase-js": "^2.50.5",
->>>>>>> 6a656d9a7e56a34a8ec0f138cd499155703e6ab7
-    "axios": "^1.10.0",
-    "clsx": "^2.1.1",
-    "date-fns": "^2.30.0",
-    "lucide-react": "^0.344.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-hook-form": "^7.52.1",
-    "react-hot-toast": "^2.4.1",
-    "react-router-dom": "^6.26.0",
-    "recharts": "^2.12.7"
-  },
+"dependencies": {
+  "@supabase/supabase-js": "^2.52.1",
+  "axios": "^1.10.0",
+  "clsx": "^2.1.1",
+  "date-fns": "^2.30.0",
+  "lucide-react": "^0.344.0",
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "react-hook-form": "^7.52.1",
+  "react-hot-toast": "^2.4.1",
+  "react-router-dom": "^6.26.0",
+  "recharts": "^2.12.7"
+},
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/node": "^24.0.7",
