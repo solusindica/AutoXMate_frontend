@@ -60,7 +60,7 @@ export const runCampaign = async (
     contact_ids: string[];
   }
 ): Promise<void> => {
-  await axios.post(`https://autoxmate-backend.onrender.com/campaigns/${campaignId}/run`, data);
+  await axios.post(`/campaigns/${campaignId}/run`, data);
 };
 
 export const deleteCampaign = async (id: string): Promise<void> => {
