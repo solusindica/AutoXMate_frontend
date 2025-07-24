@@ -13,7 +13,7 @@ export const getTemplateById = async (id: string): Promise<Template | null> => {
 };
 
 export const getAllCampaigns = async (): Promise<Campaign[]> => {
-  const response = await axios.get('/campaigns/');
+  const response = await axios.get('https://autoxmate-backend.onrender.com/campaigns/');
   return response.data || [];
 };
 
