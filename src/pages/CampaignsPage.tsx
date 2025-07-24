@@ -219,7 +219,7 @@ const handleRunCampaign = async (campaign: Campaign) => {
   console.log("📤 Sending campaign run payload:", payload);
 
   try {
-    await campaignService.runCampaign(campaign.id, payload);
+
     toast.success('Campaign sent successfully');
   } catch (error) {
     toast.error('Failed to send campaign');
