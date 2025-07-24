@@ -57,7 +57,7 @@ export const runCampaign = async (data: {
   components: any[];
   contact_ids: string[];
 }): Promise<void> => {
-  await axios.post('/campaigns/run', data);
+  await axios.post(`/campaigns/run`, data);
 
 };
 
