@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-
+import { supabase } from '../lib/supabaseClient'
 interface CampaignForm {
   name: string;
   description: string;
@@ -35,24 +35,46 @@ export const CampaignsPage: React.FC = () => {
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<CampaignForm>();
+  const [isImageHeader, setIsImageHeader] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [buttonsInfo, setButtonsInfo] = useState<any[]>([]);
   const watchedTemplateId = watch('templateId');
+
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    const selected = templates.find(t => t.id === watchedTemplateId);
-    setSelectedTemplate(selected || null);
+  const selected = templates.find(t => t.id === watchedTemplateId);
+  setSelectedTemplate(selected || null);
 
-    if (selected?.content) {
-      const matches = [...selected.content.matchAll(/\{\{(.*?)\}\}/g)];
-      const vars = Object.fromEntries(matches.map(m => [m[1], '']));
-      setTemplateVariables(vars);
-    } else {
-      setTemplateVariables({});
+  if (!selected) return;
+
+  // BODY variables from template text like {{1}}, {{2}}, etc
+  const bodyComponent = selected?.components?.find(c => c.type === 'BODY');
+  if (bodyComponent?.text) {
+    const matches = [...bodyComponent.text.matchAll(/{{\d+}}/g)];
+    const placeholderCount = matches.length;
+
+    const vars: Record<string, string> = {};
+    for (let i = 0; i < placeholderCount; i++) {
+      vars[`{{${i + 1}}}`] = '';
     }
-  }, [watchedTemplateId, templates]);
+    setTemplateVariables(vars);
+  } else {
+    setTemplateVariables({});
+  }
+
+  // Detect if HEADER is an image
+  const headerComponent = selected?.components?.find(c => c.type === 'HEADER' && c.format === 'IMAGE');
+  setIsImageHeader(!!headerComponent);
+
+  // Collect BUTTONS
+  const buttonsComponent = selected?.components?.find(c => c.type === 'BUTTONS');
+  setButtonsInfo(buttonsComponent?.buttons || []);
+}, [watchedTemplateId, templates]);
+
 
   const fetchData = async () => {
     try {
@@ -71,51 +93,138 @@ export const CampaignsPage: React.FC = () => {
     }
   };
 
-  const handleCreateCampaign = async (data: CampaignForm) => {
-    if (!user) return;
-    const template = templates.find(t => t.id === data.templateId);
+  // ...imports remain same
+const handleCreateCampaign = async (data: CampaignForm) => {
+  if (!user) return;
 
-    try {
-      const newCampaign = await campaignService.createCampaign({
-        name: data.name,
-        description: data.description,
-        templateId: data.templateId,
-        contactIds: data.contactIds,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
-        createdBy: user.id,
-        templateName: template?.name,
-        components: template?.components || [],
-      });
-      setCampaigns(prev => [newCampaign, ...prev]);
-      setIsCreateModalOpen(false);
-      reset();
-      setTemplateVariables({});
-      toast.success('Campaign created successfully');
-    } catch (error) {
-      toast.error('Failed to create campaign');
-    }
-  };
-
- const handleRunCampaign = async (campaign: Campaign) => {
-  if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
-
-  const payload = {
-    templateName: campaign.templateName ?? '',         // ensure it's not undefined
-    contactIds: campaign.contactIds || [],             // ensure it's an array
-    variables: templateVariables || {},                // avoid null/undefined
-    language: "en_US"
-  };
-
-  console.log("📤 Sending campaign run payload:", payload); // ✅ Log the full payload
+  const template = templates.find(t => t.id === data.templateId);
+  if (!template) {
+    toast.error('Selected template not found');
+    return;
+  }
 
   try {
-    await axios.post('https://autoxmate-backend.onrender.com/campaigns/run', payload);
+    const components: any[] = [];
+
+    // ✅ HEADER: Upload image to Supabase (if template uses an image)
+    const header = template.components?.find(c => c.type === 'HEADER');
+    if (header?.format === 'IMAGE' && uploadedImage) {
+      const fileExt = uploadedImage.name.split('.').pop();
+      const filePath = `campaign-images/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('whatsapp-media')
+        .upload(filePath, uploadedImage, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        toast.error('Image upload failed');
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('whatsapp-media')
+        .getPublicUrl(filePath);
+
+      components.push({
+        type: 'header',
+        parameters: [
+          {
+            type: 'image',
+            image: {
+              link: publicUrlData.publicUrl,
+            },
+          },
+        ],
+      });
+    }
+
+    // ✅ BODY: Add text variables
+    const bodyComponent = template.components?.find(c => c.type === 'BODY');
+    if (bodyComponent) {
+      const bodyParams = Object.values(templateVariables).map(val => ({
+        type: 'text',
+        text: val,
+      }));
+      components.push({
+        type: 'body',
+        parameters: bodyParams,
+      });
+    }
+
+    // ✅ BUTTONS: Handle both URL and QUICK_REPLY correctly
+    const buttons = template.components?.find(c => c.type === 'BUTTONS');
+    if (buttons?.buttons?.length > 0) {
+      (buttons.buttons as any[]).forEach((btn: any, idx: number) => {
+        const btnType = btn.type?.toUpperCase(); // "URL" or "QUICK_REPLY"
+        const component: any = {
+          type: 'button',
+          sub_type: btnType === 'URL' ? 'url' : 'quick_reply',
+          index: idx,
+          parameters: []
+        };
+
+        if (btnType === 'QUICK_REPLY') {
+          component.parameters = [
+            {
+              type: 'payload',
+              payload: btn.text || `reply_${idx}`,
+            },
+          ];
+        }
+
+        // ⚠️ DO NOT add parameters for URL buttons
+        components.push(component);
+      });
+    }
+
+    // ✅ Create campaign with correct run_payload
+    const newCampaign = await campaignService.createCampaign({
+      name: data.name,
+      description: data.description,
+      templateId: template.id,
+      templateName: template.name,
+      language: template.language,
+      components,
+      contactIds: data.contactIds,
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
+      createdBy: user.id,
+    });
+
+    setCampaigns(prev => [newCampaign, ...prev]);
+    setIsCreateModalOpen(false);
+    reset();
+    toast.success('Campaign created successfully');
+  } catch (error) {
+    toast.error('Failed to create campaign');
+    console.error(error);
+  }
+};
+
+
+
+const handleRunCampaign = async (campaign: Campaign) => {
+  if (!window.confirm(`Are you sure you want to run "${campaign.name}"?`)) return;
+
+  const payload = campaign.run_payload; // ✅ use saved payload
+  if (!payload) {
+    toast.error("No run payload found in this campaign");
+    return;
+  }
+
+  console.log("📤 Sending campaign run payload:", payload);
+
+  try {
+    await axios.post(`https://autoxmate-backend.onrender.com/campaigns/${campaign.id}/run`, payload);
     toast.success('Campaign sent successfully');
   } catch (error) {
     toast.error('Failed to send campaign');
     console.error('🚫 Run campaign failed:', error);
   }
 };
+
 
   const handleDeleteCampaign = async (campaign: Campaign) => {
     if (!window.confirm(`Are you sure you want to delete "${campaign.name}"?`)) return;
@@ -126,17 +235,6 @@ export const CampaignsPage: React.FC = () => {
       toast.success('Campaign deleted successfully');
     } catch (error) {
       toast.error('Failed to delete campaign');
-    }
-  };
-
-  const getStatusColor = (status: Campaign['status']) => {
-    switch (status) {
-      case 'draft': return 'default';
-      case 'scheduled': return 'info';
-      case 'running': return 'warning';
-      case 'completed': return 'success';
-      case 'failed': return 'error';
-      default: return 'default';
     }
   };
 
@@ -173,8 +271,10 @@ export const CampaignsPage: React.FC = () => {
                   <p className="text-sm text-gray-600">{campaign.description}</p>
                   <div className="flex gap-4 mt-2 text-sm text-gray-500">
                     <span>{campaign.templateName}</span>
-                    <span>{campaign.contactIds.length} contacts</span>
-                    <span>{format(new Date(campaign.createdAt), 'PP')}</span>
+                    <span>{campaign.contactIds?.length ?? 0} contacts</span>
+                    <span>
+                      {campaign.createdAt ? format(new Date(campaign.createdAt), 'PP') : '—'}
+                    </span>     
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -258,6 +358,17 @@ export const CampaignsPage: React.FC = () => {
               ))}
             </div>
           )}
+          {isImageHeader && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Upload Header Image *</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setUploadedImage(e.target.files?.[0] || null)}
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1">Contacts *</label>
@@ -274,6 +385,7 @@ export const CampaignsPage: React.FC = () => {
                 </label>
               ))}
             </div>
+
             {errors.contactIds && <p className="text-red-500 text-sm">At least one contact required</p>}
           </div>
 
