@@ -26,7 +26,7 @@ export const getAllConversations = async (): Promise<Conversation[]> => {
 
 export const getContactById = async (contactId: string): Promise<Contact | null> => {
   try {
-    const response = await axios.get(`https://autoxmate-backend.onrender.com/contacts/${contactId}`);
+    const response = await axios.get(`https://autoxmate-backend-khzt.onrender.com/contacts/${contactId}`);
     return response.data;
   } catch (err) {
     console.error("Failed to fetch contact", err);
