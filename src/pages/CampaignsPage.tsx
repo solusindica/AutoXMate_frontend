@@ -158,40 +158,40 @@ const handleCreateCampaign = async (data: CampaignForm) => {
 
     // ✅ BUTTONS: Handle both URL and QUICK_REPLY correctly
  // ✅ BUTTONS (fix: handle URL, QUICK_REPLY, PHONE_NUMBER correctly)
-const buttons = template.components?.find(c => c.type === 'BUTTONS');
-if (buttons?.buttons?.length > 0) {
-  (buttons.buttons as any[]).forEach((btn: any, idx: number) => {
-    const btnType = btn.type?.toUpperCase(); // "URL" | "QUICK_REPLY" | "PHONE_NUMBER"
-
-    const component: any = {
-      type: 'button',
-      sub_type:
-        btnType === 'URL'
-          ? 'url'
-          : btnType === 'PHONE_NUMBER'
-          ? 'phone_number'
-          : 'quick_reply',
-      index: idx,
-      parameters: [],
-    };
-
-    if (btnType === 'QUICK_REPLY') {
-      component.parameters = [{
-        type: 'payload',
-        payload: btn.text || `reply_${idx}`,
-      }];
-    }
-
-    if (btnType === 'PHONE_NUMBER') {
-      component.parameters = [{
-        type: 'payload',
-        payload: btn.phone_number || btn.text || `phone_${idx}`,
-      }];
-    }
-
-    components.push(component);
-  });
-}
+  const buttons = template.components?.find(c => c.type === 'BUTTONS');
+  if (buttons?.buttons?.length > 0) {
+    (buttons.buttons as any[]).forEach((btn: any, idx: number) => {
+      const btnType = btn.type?.toUpperCase(); // "URL" | "QUICK_REPLY" | "PHONE_NUMBER"
+  
+      const component: any = {
+        type: 'button',
+        sub_type:
+          btnType === 'URL'
+            ? 'url'
+            : btnType === 'PHONE_NUMBER'
+            ? 'phone_number'
+            : 'quick_reply',
+        index: idx,
+        parameters: [],
+      };
+  
+      if (btnType === 'QUICK_REPLY') {
+        component.parameters = [{
+          type: 'payload',
+          payload: btn.text || `reply_${idx}`,
+        }];
+      }
+  
+      if (btnType === 'PHONE_NUMBER') {
+        component.parameters = [{
+          type: 'payload',
+          payload: btn.phone_number || btn.text || `phone_${idx}`,
+        }];
+      }
+  
+      components.push(component);
+    });
+  }
 
 
     // ✅ Create campaign with correct run_payload
