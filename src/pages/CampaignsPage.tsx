@@ -157,30 +157,42 @@ const handleCreateCampaign = async (data: CampaignForm) => {
     }
 
     // ✅ BUTTONS: Handle both URL and QUICK_REPLY correctly
-    const buttons = template.components?.find(c => c.type === 'BUTTONS');
-    if (buttons?.buttons?.length > 0) {
-      (buttons.buttons as any[]).forEach((btn: any, idx: number) => {
-        const btnType = btn.type?.toUpperCase(); // "URL" or "QUICK_REPLY"
-        const component: any = {
-          type: 'button',
-          sub_type: btnType === 'URL' ? 'url' : 'quick_reply',
-          index: idx,
-          parameters: []
-        };
+ // ✅ BUTTONS (fix: handle URL, QUICK_REPLY, PHONE_NUMBER correctly)
+const buttons = template.components?.find(c => c.type === 'BUTTONS');
+if (buttons?.buttons?.length > 0) {
+  (buttons.buttons as any[]).forEach((btn: any, idx: number) => {
+    const btnType = btn.type?.toUpperCase(); // "URL" | "QUICK_REPLY" | "PHONE_NUMBER"
 
-        if (btnType === 'QUICK_REPLY') {
-          component.parameters = [
-            {
-              type: 'payload',
-              payload: btn.text || `reply_${idx}`,
-            },
-          ];
-        }
+    const component: any = {
+      type: 'button',
+      sub_type:
+        btnType === 'URL'
+          ? 'url'
+          : btnType === 'PHONE_NUMBER'
+          ? 'phone_number'
+          : 'quick_reply',
+      index: idx,
+      parameters: [],
+    };
 
-        // ⚠️ DO NOT add parameters for URL buttons
-        components.push(component);
-      });
+    if (btnType === 'QUICK_REPLY') {
+      component.parameters = [{
+        type: 'payload',
+        payload: btn.text || `reply_${idx}`,
+      }];
     }
+
+    if (btnType === 'PHONE_NUMBER') {
+      component.parameters = [{
+        type: 'payload',
+        payload: btn.phone_number || btn.text || `phone_${idx}`,
+      }];
+    }
+
+    components.push(component);
+  });
+}
+
 
     // ✅ Create campaign with correct run_payload
     const newCampaign = await campaignService.createCampaign({
