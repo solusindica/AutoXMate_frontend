@@ -27,6 +27,7 @@ interface CampaignForm {
 export const CampaignsPage: React.FC = () => {
   const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [runningCampaignId, setRunningCampaignId] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +85,7 @@ const fetchData = async () => {
       contactService.getAllContacts()
     ]);
 
-    console.log("📦 Campaigns from backend:", campaignsData);
+    // console.log("📦 Campaigns from backend:", campaignsData);
     setCampaigns(campaignsData); // ✅ may crash if campaignsData is undefined
     setTemplates(templatesData);
     setContacts(contactsData);
@@ -228,14 +229,17 @@ const handleRunCampaign = async (campaign: Campaign) => {
     return;
   }
 
-  console.log("📤 Sending campaign run payload:", payload);
+  // console.log("📤 Sending campaign run payload:", payload);
 
   try {
     await campaignService.runCampaign(campaign.id, payload);
     toast.success('Campaign sent successfully');
   } catch (error) {
     toast.error('Failed to send campaign');
-    console.error('🚫 Run campaign failed:', error);
+    // console.error('🚫 Run campaign failed:', error);
+  } finally {
+    // Reset running state
+    setRunningCampaignId(null);
   }
 };
 
@@ -293,9 +297,17 @@ const handleRunCampaign = async (campaign: Campaign) => {
                 </div>
                 <div className="flex items-center gap-2">
                   {campaign.status === 'draft' && (
-                    <Button size="sm" onClick={() => handleRunCampaign(campaign)}>
-                      <Play className="w-4 h-4 mr-1" />
-                      Run
+                    <Button
+                      size="sm"
+                      onClick={() => handleRunCampaign(campaign)}
+                      disabled={runningCampaignId === campaign.id} // Disable while running
+                    >
+                      {runningCampaignId === campaign.id ? (
+                        <LoadingSpinner size="sm" className="mr-1" /> // Show spinner
+                      ) : (
+                        <Play className="w-4 h-4 mr-1" />
+                      )}
+                      {runningCampaignId === campaign.id ? 'Running...' : 'Run'}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => handleDeleteCampaign(campaign)}>
