@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabaseClient'
 
+
 interface CampaignForm {
   name: string;
   description: string;
@@ -232,6 +233,7 @@ const handleRunCampaign = async (campaign: Campaign) => {
   // console.log("📤 Sending campaign run payload:", payload);
 
   try {
+     setRunningCampaignId(campaign.id);
     await campaignService.runCampaign(campaign.id, payload);
     toast.success('Campaign sent successfully');
   } catch (error) {
