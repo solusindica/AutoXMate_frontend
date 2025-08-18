@@ -233,6 +233,7 @@ const handleRunCampaign = async (campaign: Campaign) => {
   // console.log("📤 Sending campaign run payload:", payload);
 
   try {
+     console.log("▶ Setting runningCampaignId:", campaign.id, typeof campaign.id);
      setRunningCampaignId(campaign.id);
     await campaignService.runCampaign(campaign.id, payload);
     toast.success('Campaign sent successfully');
