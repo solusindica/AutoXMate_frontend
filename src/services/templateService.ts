@@ -5,7 +5,8 @@ import { Template } from '../types';
 
 export const getAllTemplates = async (): Promise<Template[]> => {
   const response = await axios.get('/templates/meta');
-  return response.data.data || []; // ✅ fix: only return the array
+  // return response.data.data || []; // ✅ fix: only return the array
+ return response.data;
 };
 
 export const createTemplateInMeta = async (template: any): Promise<any> => {
